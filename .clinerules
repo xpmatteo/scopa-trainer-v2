@@ -1,0 +1,47 @@
+# Scopa Trainer Project Rules
+
+## Code Style Preferences
+- Single HTML file containing all CSS and JavaScript
+- ES6+ JavaScript constructs preferred
+- CSS uses flexbox for responsive layouts
+- Semantic variable naming (descriptive rather than abbreviated)
+
+## Project Structure
+- Keep all game logic in the single HTML file for simplicity
+- Organize JavaScript functions into logical groups:
+  - Game initialization
+  - Card manipulation
+  - Player interaction
+  - AI logic
+  - Analysis features
+
+## Implementation Patterns
+- Use central gameState object to manage all state
+- Render UI elements based on state changes
+- DOM manipulation follows declarative pattern
+- AI uses priority-based decision making
+- Game analysis tracks each move for post-game review
+
+## Card Representation
+- Cards represented as objects: `{suit: string, value: number, id: string}`
+- Suits: 'coins', 'cups', 'swords', 'clubs'
+- Values: 1-10 (1=Asso, 8=Fante, 9=Cavallo, 10=Re)
+- ID format: `${suit}-${value}`
+
+## Game Flow Patterns
+- Turn-based model: Player action -> AI response
+- Move sequence: Select hand card -> Select table card(s) -> Confirm move
+- Game divided into rounds of dealing until deck exhausted
+- Post-game analysis occurs after final scoring
+
+## Naming Conventions
+- Element IDs use kebab-case: 'player-score', 'ai-hand', etc.
+- JavaScript variables use camelCase: 'playerHand', 'tableCards', etc.
+- CSS classes use descriptive names for card states: 'selected', 'highlight-card'
+
+## UI Interaction Models
+- Cards highlight on hover
+- Selected cards have yellow border
+- AI actions have visual indication (temporary card display)
+- Error messages displayed in central message area
+- Modal dialogs for game completion and analysis
