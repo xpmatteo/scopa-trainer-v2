@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Legal Moves Function</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            line-height: 1.6;
+        }
+        h1 {
+            color: #333;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+        }
+        pre {
+            background-color: #f5f5f5;
+            padding: 15px;
+            border-radius: 5px;
+            overflow-x: auto;
+        }
+        #output {
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <h1>Testing findAllLegalMoves Function</h1>
+    <p>Check the browser console (F12) to see the test output.</p>
+    <div>
+        <h2>Output:</h2>
+        <pre id="output">Running tests...</pre>
+    </div>
+    
+    <script type="module">
+        import * as test from './js/test-legal-moves.js';
+        
+        // Capture console.log output and display it in the page
+        const outputDiv = document.getElementById('output');
+        const originalLog = console.log;
+        
+        console.log = function(...args) {
+            originalLog.apply(console, args);
+            
+            // Append to the HTML output
+            outputDiv.textContent += args.join(' ') + '\n';
+        };
+    </script>
+</body>
+</html>

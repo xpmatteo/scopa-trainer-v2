@@ -805,6 +805,40 @@ function generateGameAnalysis() {
     return analysisText;
 }
 
+// Find all legal moves for a given game state
+function findAllLegalMoves(state, player = 'player') {
+    const legalMoves = [];
+    const hand = player === 'player' ? state.playerHand : state.aiHand;
+    
+    // For each card in the player's hand
+    for (const card of hand) {
+        // Find all possible captures
+        const possibleCaptures = findCaptures(card, state.table);
+        
+        if (possibleCaptures.length > 0) {
+            // For each possible capture, add a capture move
+            possibleCaptures.forEach(captureCards => {
+                legalMoves.push({
+                    type: 'capture',
+                    card: card,
+                    captureCards: captureCards,
+                    description: `Play ${card.value} of ${card.suit} to capture ${captureCards.map(c => `${c.value} of ${c.suit}`).join(', ')}`
+                });
+            });
+        } else {
+            // If no captures possible, add a discard move
+            legalMoves.push({
+                type: 'discard',
+                card: card,
+                captureCards: [],
+                description: `Play ${card.value} of ${card.suit} to the table (discard)`
+            });
+        }
+    }
+    
+    return legalMoves;
+}
+
 // Export all the necessary functions and objects
 export {
     suits,
@@ -814,6 +848,7 @@ export {
     initGameState,
     dealNewHands,
     findCaptures,
+    findAllLegalMoves,
     playPlayerCard,
     executeAITurn,
     generateGameAnalysis
