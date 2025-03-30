@@ -70,130 +70,41 @@ function makeAIDecision(legalMoves, aiGameState) {
 /**
  * Recommend a move for the player (used for analysis)
  * @param {Array} legalMoves - All legal moves available to the player
- * @param {Object} aiGameState - The game state as known to the AI
+ * @param {Object} playerGameState - The game state as known to the player
  * @returns {Object} The recommended move, tableCards, reasoning and priority
  */
-function recommendMove(legalMoves, aiGameState) {
-    // Separate capture and discard moves
-    const captureMoves = legalMoves.filter(move => move.type === 'capture');
-    const discardMoves = legalMoves.filter(move => move.type === 'discard');
+function recommendMove(legalMoves, playerGameState) {
+    // Use the same decision making logic as the AI
+    const decision = makeAIDecision(legalMoves, playerGameState);
     
-    // No legal moves means something is wrong
-    if (legalMoves.length === 0) {
-        return { 
-            card: null, 
-            tableCards: [],
-            reasoning: "No legal moves available. This should not happen.",
-            priority: "Lowest"
-        };
-    }
-    
-    // If no capture moves, return a strategic discard
-    if (captureMoves.length === 0) {
-        // Find the least risky discard
-        let bestDiscard = null;
-        let lowestRisk = Infinity;
-        
-        for (const move of discardMoves) {
-            // Calculate risk by checking how many new combinations this discard would create
-            const potentialTable = [...aiGameState.tableCards, move.card];
-            let riskScore = 0;
-            
-            for (let i = 1; i <= 10; i++) {
-                const possibleCaptures = findCaptures({value: i}, potentialTable);
-                riskScore += possibleCaptures.length;
-            }
-            
-            if (riskScore < lowestRisk) {
-                lowestRisk = riskScore;
-                bestDiscard = { 
-                    card: move.card, 
-                    tableCards: [],
-                    reasoning: "No captures possible. This discard creates the fewest potential captures for the opponent",
-                    priority: "Low"
-                };
-            }
-        }
-        
-        return bestDiscard || { 
-            card: discardMoves[0].card, 
-            tableCards: [],
-            reasoning: "No captures possible. Discarding this card is as good as any other.",
-            priority: "Lowest"
-        };
-    }
-    
-    // Priority 1: Find any capture that would result in a scopa
-    const scopaMove = captureMoves.find(move => 
-        move.captureCards.length === aiGameState.tableCards.length
-    );
-    if (scopaMove) {
-        return { 
-            card: scopaMove.card, 
-            tableCards: scopaMove.captureCards,
-            reasoning: "This creates a scopa by clearing the table",
-            priority: "Highest"
-        };
-    }
-    
-    // Priority 2: Capture the 7 of coins if possible
-    const setteMove = captureMoves.find(move => 
-        move.captureCards.some(c => c.suit === 'coins' && c.value === 7)
-    );
-    if (setteMove) {
-        return { 
-            card: setteMove.card, 
-            tableCards: setteMove.captureCards,
-            reasoning: "This captures the valuable 7 of coins (Sette Bello)",
-            priority: "High"
-        };
-    }
-    
-    // Priority 3: Capture as many coins as possible
-    let bestCoinsMove = null;
-    let mostCoins = 0;
-    
-    for (const move of captureMoves) {
-        const coinCount = move.captureCards.filter(c => c.suit === 'coins').length;
-        if (coinCount > mostCoins) {
-            mostCoins = coinCount;
-            bestCoinsMove = move;
-        }
-    }
-    
-    if (bestCoinsMove && mostCoins > 0) {
-        return { 
-            card: bestCoinsMove.card, 
-            tableCards: bestCoinsMove.captureCards,
-            reasoning: `This captures ${mostCoins} coin cards, helping secure the 'most coins' point`,
-            priority: "Medium-High"
-        };
-    }
-    
-    // Priority 4: Capture high-value primera cards
-    const primeraMove = captureMoves.find(move => 
-        move.captureCards.some(c => c.value === 7 || c.value === 6 || c.value === 1 || c.value === 5)
-    );
-    if (primeraMove) {
-        return { 
-            card: primeraMove.card, 
-            tableCards: primeraMove.captureCards,
-            reasoning: "This captures high-value primera cards",
-            priority: "Medium"
-        };
-    }
-    
-    // Priority 5: Capture as many cards as possible
-    // Sort moves by number of cards captured (descending)
-    captureMoves.sort((a, b) => b.captureCards.length - a.captureCards.length);
-    const mostCardMove = captureMoves[0];
-    
-    return { 
-        card: mostCardMove.card, 
-        tableCards: mostCardMove.captureCards,
-        reasoning: `This captures ${mostCardMove.captureCards.length} cards, helping secure the 'most cards' point`,
-        priority: "Medium"
+    // Convert the AI decision format to the recommendation format expected by the analysis
+    return {
+        card: decision.move.card,
+        tableCards: decision.move.tableCards,
+        reasoning: decision.rationale,
+        priority: getPriorityFromRationale(decision.rationale)
     };
+}
+
+/**
+ * Helper function to convert rationale text to a priority level
+ * @param {string} rationale - The reasoning behind a decision
+ * @returns {string} Priority level (Highest, High, Medium-High, Medium, Low, Lowest)
+ */
+function getPriorityFromRationale(rationale) {
+    if (rationale.includes("scopa") || rationale.includes("clearing the table")) {
+        return "Highest";
+    } else if (rationale.includes("7 of coins") || rationale.includes("Sette Bello")) {
+        return "High";
+    } else if (rationale.includes("coin cards")) {
+        return "Medium-High";
+    } else if (rationale.includes("maximize card count")) {
+        return "Medium";
+    } else if (rationale.includes("No captures possible")) {
+        return "Low";
+    } else {
+        return "Lowest";
+    }
 }
 
 /**
