@@ -23,6 +23,22 @@ let nextMoveBtn;
 let moveCounterEl;
 let moveDisplayEl;
 
+// Score Breakdown elements
+let aiCardsEl;
+let aiCoinsEl;
+let aiSetteEl;
+let aiSevensEl;
+let aiSixesEl;
+let aiAcesEl;
+let aiScopaCountEl;
+let playerCardsEl;
+let playerCoinsEl;
+let playerSetteEl;
+let playerSevensEl;
+let playerSixesEl;
+let playerAcesEl;
+let playerScopaCountEl;
+
 // Replay state
 let currentMoveIndex = 0;
 
@@ -47,6 +63,32 @@ function setup() {
     nextMoveBtn = document.getElementById('next-move-btn');
     moveCounterEl = document.getElementById('move-counter');
     moveDisplayEl = document.getElementById('move-display');
+    
+    // Initialize Score Breakdown elements
+    try {
+        aiCardsEl = document.getElementById('ai-cards-captured');
+        aiCoinsEl = document.getElementById('ai-coins-captured');
+        aiSetteEl = document.getElementById('ai-sette-bello');
+        aiSevensEl = document.getElementById('ai-sevens');
+        aiSixesEl = document.getElementById('ai-sixes');
+        aiAcesEl = document.getElementById('ai-aces');
+        aiScopaCountEl = document.getElementById('ai-scopa-count');
+        playerCardsEl = document.getElementById('player-cards-captured');
+        playerCoinsEl = document.getElementById('player-coins-captured');
+        playerSetteEl = document.getElementById('player-sette-bello');
+        playerSevensEl = document.getElementById('player-sevens');
+        playerSixesEl = document.getElementById('player-sixes');
+        playerAcesEl = document.getElementById('player-aces');
+        playerScopaCountEl = document.getElementById('player-scopa-count');
+        
+        // Debug logging
+        console.log("Score breakdown elements initialized:", {
+            aiCardsEl, aiCoinsEl, aiSetteEl, aiSevensEl, aiSixesEl, aiAcesEl, aiScopaCountEl,
+            playerCardsEl, playerCoinsEl, playerSetteEl, playerSevensEl, playerSixesEl, playerAcesEl, playerScopaCountEl
+        });
+    } catch (e) {
+        console.error("Error initializing score breakdown elements:", e);
+    }
 }
 
 // Initialize game
@@ -71,6 +113,94 @@ function updateScores() {
     aiCapturesEl.textContent = `Captures: ${model.gameState.aiCaptures.length}`;
     playerScopaEl.textContent = `Scopa: ${model.gameState.playerScopaCount}`;
     aiScopaEl.textContent = `Scopa: ${model.gameState.aiScopaCount}`;
+    
+    // Update detailed score breakdown
+    updateScoreBreakdown();
+}
+
+// Update detailed score breakdown display
+function updateScoreBreakdown() {
+    // Check if the DOM elements are initialized
+    if (!aiCardsEl || !playerCardsEl) {
+        console.log("Score breakdown elements not initialized yet");
+        return;
+    }
+    
+    // Get detailed breakdown from the model
+    const breakdown = model.scoreBreakdown(model.gameState);
+    
+    // Update AI breakdown
+    aiCardsEl.textContent = breakdown.ai.cardsCaptured;
+    aiCoinsEl.textContent = breakdown.ai.coinsCaptured;
+    aiSetteEl.textContent = breakdown.ai.hasSetteBello ? 'Yes' : 'No';
+    aiSevensEl.textContent = breakdown.ai.primieraCards.sevens;
+    aiSixesEl.textContent = breakdown.ai.primieraCards.sixes;
+    aiAcesEl.textContent = breakdown.ai.primieraCards.aces;
+    aiScopaCountEl.textContent = breakdown.ai.scopaCount;
+    
+    // Update Player breakdown
+    playerCardsEl.textContent = breakdown.player.cardsCaptured;
+    playerCoinsEl.textContent = breakdown.player.coinsCaptured;
+    playerSetteEl.textContent = breakdown.player.hasSetteBello ? 'Yes' : 'No';
+    playerSevensEl.textContent = breakdown.player.primieraCards.sevens;
+    playerSixesEl.textContent = breakdown.player.primieraCards.sixes;
+    playerAcesEl.textContent = breakdown.player.primieraCards.aces;
+    playerScopaCountEl.textContent = breakdown.player.scopaCount;
+    
+    // Apply advantage highlighting
+    // Clear all previous highlighting
+    clearAllAdvantageHighlighting();
+    
+    // Apply card advantage highlighting
+    if (breakdown.player.cardAdvantage) {
+        playerCardsEl.className = breakdown.player.cardAdvantage === 'strong' ? 'strong-advantage' : 'normal-advantage';
+    }
+    if (breakdown.ai.cardAdvantage) {
+        aiCardsEl.className = breakdown.ai.cardAdvantage === 'strong' ? 'strong-advantage' : 'normal-advantage';
+    }
+    
+    // Apply coin advantage highlighting
+    if (breakdown.player.coinAdvantage) {
+        playerCoinsEl.className = breakdown.player.coinAdvantage === 'strong' ? 'strong-advantage' : 'normal-advantage';
+    }
+    if (breakdown.ai.coinAdvantage) {
+        aiCoinsEl.className = breakdown.ai.coinAdvantage === 'strong' ? 'strong-advantage' : 'normal-advantage';
+    }
+    
+    // Apply primiera advantage highlighting (combined for all primiera cards)
+    if (breakdown.player.primieraAdvantage) {
+        const cls = breakdown.player.primieraAdvantage === 'strong' ? 'strong-advantage' : 'normal-advantage';
+        playerSevensEl.className = cls;
+        playerSixesEl.className = cls;
+        playerAcesEl.className = cls;
+    }
+    if (breakdown.ai.primieraAdvantage) {
+        const cls = breakdown.ai.primieraAdvantage === 'strong' ? 'strong-advantage' : 'normal-advantage';
+        aiSevensEl.className = cls;
+        aiSixesEl.className = cls;
+        aiAcesEl.className = cls;
+    }
+    
+    // Highlight sette bello
+    if (breakdown.player.hasSetteBello) {
+        playerSetteEl.className = 'strong-advantage';
+    }
+    if (breakdown.ai.hasSetteBello) {
+        aiSetteEl.className = 'strong-advantage';
+    }
+}
+
+// Clear all advantage highlighting
+function clearAllAdvantageHighlighting() {
+    // Check if elements exist first
+    const elements = [
+        playerCardsEl, playerCoinsEl, playerSevensEl, playerSixesEl, playerAcesEl,
+        aiCardsEl, aiCoinsEl, aiSevensEl, aiSixesEl, aiAcesEl
+    ].filter(el => el !== null && el !== undefined);
+    
+    elements.forEach(el => {
+        el.className = '';
+    });
 }
 
 // Render the game state

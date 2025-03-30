@@ -772,6 +772,83 @@ function findAllLegalMoves(state, player = 'player') {
     return legalMoves;
 }
 
+/**
+ * Calculate detailed score breakdown for both players
+ * @param {Object} state - The current game state
+ * @returns {Object} Detailed score information for both players
+ */
+function scoreBreakdown(state) {
+    // Initialize result object
+    const result = {
+        player: {
+            cardsCaptured: state.playerCaptures.length,
+            coinsCaptured: state.playerCaptures.filter(card => card.suit === 'coins').length,
+            hasSetteBello: state.playerCaptures.some(card => card.suit === 'coins' && card.value === 7),
+            primieraCards: {
+                sevens: state.playerCaptures.filter(card => card.value === 7).length,
+                sixes: state.playerCaptures.filter(card => card.value === 6).length,
+                aces: state.playerCaptures.filter(card => card.value === 1).length
+            },
+            scopaCount: state.playerScopaCount,
+            
+            // Advantage indicators
+            cardAdvantage: null,
+            coinAdvantage: null,
+            primieraAdvantage: null
+        },
+        
+        ai: {
+            cardsCaptured: state.aiCaptures.length,
+            coinsCaptured: state.aiCaptures.filter(card => card.suit === 'coins').length,
+            hasSetteBello: state.aiCaptures.some(card => card.suit === 'coins' && card.value === 7),
+            primieraCards: {
+                sevens: state.aiCaptures.filter(card => card.value === 7).length,
+                sixes: state.aiCaptures.filter(card => card.value === 6).length,
+                aces: state.aiCaptures.filter(card => card.value === 1).length
+            },
+            scopaCount: state.aiScopaCount,
+            
+            // Advantage indicators
+            cardAdvantage: null,
+            coinAdvantage: null,
+            primieraAdvantage: null
+        }
+    };
+    
+    // Calculate card advantage
+    if (result.player.cardsCaptured > result.ai.cardsCaptured) {
+        result.player.cardAdvantage = result.player.cardsCaptured >= 21 ? 'strong' : 'normal';
+    } else if (result.ai.cardsCaptured > result.player.cardsCaptured) {
+        result.ai.cardAdvantage = result.ai.cardsCaptured >= 21 ? 'strong' : 'normal';
+    }
+    
+    // Calculate coin advantage
+    if (result.player.coinsCaptured > result.ai.coinsCaptured) {
+        result.player.coinAdvantage = result.player.coinsCaptured >= 6 ? 'strong' : 'normal';
+    } else if (result.ai.coinsCaptured > result.player.coinsCaptured) {
+        result.ai.coinAdvantage = result.ai.coinsCaptured >= 6 ? 'strong' : 'normal';
+    }
+    
+    // Calculate primiera advantage
+    const playerPrimieraTotal = 
+        result.player.primieraCards.sevens +
+        result.player.primieraCards.sixes +
+        result.player.primieraCards.aces;
+        
+    const aiPrimieraTotal = 
+        result.ai.primieraCards.sevens +
+        result.ai.primieraCards.sixes +
+        result.ai.primieraCards.aces;
+    
+    if (playerPrimieraTotal > aiPrimieraTotal) {
+        result.player.primieraAdvantage = playerPrimieraTotal >= 7 ? 'strong' : 'normal';
+    } else if (aiPrimieraTotal > playerPrimieraTotal) {
+        result.ai.primieraAdvantage = aiPrimieraTotal >= 7 ? 'strong' : 'normal';
+    }
+    
+    return result;
+}
+
 // Export all the necessary functions and objects
 export {
     suits,
@@ -786,5 +863,6 @@ export {
     executeMove,
     getAIGameState,
     getPlayerAnalysisState,
-    generateGameAnalysis
+    generateGameAnalysis,
+    scoreBreakdown
 };

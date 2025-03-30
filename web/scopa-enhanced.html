@@ -16,6 +16,53 @@
             min-height: 95vh;
         }
         
+        .score-breakdown {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 8px;
+            padding: 10px;
+            width: 180px;
+            font-size: 14px;
+            z-index: 10;
+            box-shadow: 0 0 10px rgba(0,0,0,0.5);
+            top: 120px;
+        }
+        
+        .ai-score-breakdown {
+            left: 20px; /* Fixed position at left edge with margin */
+        }
+        
+        .player-score-breakdown {
+            right: 20px; /* Fixed position at right edge with margin */
+        }
+        
+        .breakdown-title {
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 5px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+            padding-bottom: 5px;
+        }
+        
+        .breakdown-item {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 3px;
+        }
+        
+        .normal-advantage {
+            background-color: rgba(255, 255, 0, 0.3);
+            border-radius: 4px;
+            padding: 0 3px;
+        }
+        
+        .strong-advantage {
+            background-color: rgba(255, 215, 0, 0.6);
+            border-radius: 4px;
+            padding: 0 3px;
+            font-weight: bold;
+        }
+        
         h1 {
             text-align: center;
             margin-bottom: 10px;
@@ -28,6 +75,7 @@
             gap: 20px;
             max-width: 800px;
             margin: 0 auto;
+            position: relative; /* For absolute positioning */
         }
         
         .scoreboard {
@@ -337,6 +385,12 @@
             .small-card .card-suit {
                 font-size: 20px;
             }
+            
+            .score-breakdown {
+                position: static;
+                width: 100%;
+                margin-bottom: 10px;
+            }
         }
     </style>
 </head>
@@ -344,6 +398,72 @@
     <h1>Scopa Card Game</h1>
     
     <div class="game-container">
+        <!-- AI Score Breakdown Panel -->
+        <div class="score-breakdown ai-score-breakdown" id="ai-score-breakdown">
+            <div class="breakdown-title">AI Score Details</div>
+            <div class="breakdown-item">
+                <span>Cards:</span>
+                <span id="ai-cards-captured">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Coins:</span>
+                <span id="ai-coins-captured">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>7 of Coins:</span>
+                <span id="ai-sette-bello">No</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Primiera (7s):</span>
+                <span id="ai-sevens">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Primiera (6s):</span>
+                <span id="ai-sixes">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Primiera (1s):</span>
+                <span id="ai-aces">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Scopa:</span>
+                <span id="ai-scopa-count">0</span>
+            </div>
+        </div>
+        
+        <!-- Player Score Breakdown Panel -->
+        <div class="score-breakdown player-score-breakdown" id="player-score-breakdown">
+            <div class="breakdown-title">Your Score Details</div>
+            <div class="breakdown-item">
+                <span>Cards:</span>
+                <span id="player-cards-captured">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Coins:</span>
+                <span id="player-coins-captured">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>7 of Coins:</span>
+                <span id="player-sette-bello">No</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Primiera (7s):</span>
+                <span id="player-sevens">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Primiera (6s):</span>
+                <span id="player-sixes">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Primiera (1s):</span>
+                <span id="player-aces">0</span>
+            </div>
+            <div class="breakdown-item">
+                <span>Scopa:</span>
+                <span id="player-scopa-count">0</span>
+            </div>
+        </div>
+        
         <div class="scoreboard">
             <div class="ai-score">
                 <div>AI Player</div>
