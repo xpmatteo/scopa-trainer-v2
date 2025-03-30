@@ -23,9 +23,22 @@
 - MVC architecture with proper separation of concerns:
   - **model.js**: Game state and business logic
   - **controller.js**: UI handling and DOM manipulation
+  - **ai.js**: Pure functions for AI decision making
   - **main.js**: Application initialization and event binding
 - ES6 modules with import/export pattern
 - Event-driven architecture for handling user interactions
+- Centralized legal moves system for consistent rule enforcement
+
+### Game Logic Implementation
+- **findAllLegalMoves function**: Central logic for determining valid moves
+- **Model-Controller separation**: Model contains game rules, Controller handles UI interaction
+- **State-based validation**: All gameplay validation based on current game state
+
+### AI Implementation
+- **Pure Function Pattern**: AI implemented as pure functions with no access to global state
+- **Limited Information Principle**: AI only receives information a real player would know
+- **makeAIDecision**: Takes legal moves and AI's view of game state, returns a decision
+- **recommendMove**: Provides analysis for player moves (for post-game review)
 
 ### Rendering Approach
 - DOM manipulation for UI updates
@@ -48,7 +61,8 @@
 - VSCode with HTML/CSS/JavaScript extensions
 
 ### Testing Approach
-- Manual testing across browsers
+- Dedicated test suite for legal moves functionality
+- HTML-based test runner with visual results
 - Console-based debugging
 - Snapshot testing of game state transitions
 

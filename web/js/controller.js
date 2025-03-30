@@ -1,6 +1,7 @@
 // Controller - handles interactions between model and UI
 
 import * as model from './model.js';
+import * as ai from './ai.js';
 
 // DOM elements - will be initialized in setup function
 let tableEl;
@@ -177,18 +178,29 @@ function createSmallCardElement(card, highlight = false) {
     return cardEl;
 }
 
+// Current legal moves cache
+let currentLegalMoves = [];
+
 // Handle player card click
 function handlePlayerCardClick(card) {
     if (model.gameState.currentTurn !== 'player' || model.gameState.gameOver) return;
     
+    // Get all legal moves for the current game state
+    currentLegalMoves = model.findAllLegalMoves(model.gameState);
+    
     // Deselect if the same card is clicked again
     if (model.gameState.selectedCard && model.gameState.selectedCard.id === card.id) {
-        // If there are no possible captures, discard the card to the table
-        if (model.findCaptures(card, model.gameState.table).length === 0) {
+        // If there are no capture moves for this card, discard it immediately
+        const cardMoves = currentLegalMoves.filter(move => move.card.id === card.id);
+        const hasCaptures = cardMoves.some(move => move.type === 'capture');
+        
+        if (!hasCaptures) {
+            // Play the discard move
             playCard(card, []);
             return;
         }
         
+        // Just deselect the card
         model.gameState.selectedCard = null;
         model.gameState.selectedTableCards = [];
         renderGame();
@@ -200,12 +212,13 @@ function handlePlayerCardClick(card) {
     model.gameState.selectedCard = card;
     model.gameState.selectedTableCards = [];
     
-    // Find possible captures
-    const possibleCaptures = model.findCaptures(card, model.gameState.table);
+    // Filter legal moves for this card
+    const cardMoves = currentLegalMoves.filter(move => move.card.id === card.id);
+    const captureMoves = cardMoves.filter(move => move.type === 'capture');
     
     renderGame();
     
-    if (possibleCaptures.length > 0) {
+    if (captureMoves.length > 0) {
         messageEl.textContent = 'Select table card(s) to capture or select a different hand card.';
     } else {
         messageEl.textContent = 'No captures possible with this card. Click again to discard to table.';
@@ -216,6 +229,7 @@ function handlePlayerCardClick(card) {
 function handleTableCardClick(card) {
     if (model.gameState.currentTurn !== 'player' || !model.gameState.selectedCard || model.gameState.gameOver) return;
     
+    // Toggle selection of the table card
     const selectedIndex = model.gameState.selectedTableCards.findIndex(c => c.id === card.id);
     
     if (selectedIndex > -1) {
@@ -228,16 +242,33 @@ function handleTableCardClick(card) {
     
     renderTable();
     
-    // Calculate sum of selected table cards
-    const sumOfSelected = model.gameState.selectedTableCards.reduce((sum, c) => sum + c.value, 0);
+    // Check if the current selection is a valid move
+    const selectedHandCard = model.gameState.selectedCard;
+    const selectedTableIds = model.gameState.selectedTableCards.map(c => c.id);
     
-    if (sumOfSelected === model.gameState.selectedCard.value) {
-        // Perform the capture
-        playCard(model.gameState.selectedCard, model.gameState.selectedTableCards);
-    } else if (sumOfSelected > model.gameState.selectedCard.value) {
-        messageEl.textContent = 'Sum exceeds your card value. Deselect some cards.';
+    // Find a matching legal move
+    const matchingMove = currentLegalMoves.find(move => 
+        move.card.id === selectedHandCard.id && 
+        move.type === 'capture' &&
+        move.captureCards.length === selectedTableIds.length &&
+        move.captureCards.every(c => selectedTableIds.includes(c.id))
+    );
+    
+    if (matchingMove) {
+        // Valid move - execute it
+        playCard(selectedHandCard, model.gameState.selectedTableCards);
     } else if (model.gameState.selectedTableCards.length > 0) {
-        messageEl.textContent = `Sum: ${sumOfSelected}. Select more cards or deselect to try different combination.`;
+        // Not a valid move yet - provide guidance
+        const selectedSum = model.gameState.selectedTableCards.reduce((sum, c) => sum + c.value, 0);
+        
+        if (selectedSum > selectedHandCard.value) {
+            messageEl.textContent = 'Sum exceeds your card value. Deselect some cards.';
+        } else if (selectedSum < selectedHandCard.value) {
+            messageEl.textContent = `Sum: ${selectedSum}. Select more cards or deselect to try different combination.`;
+        } else {
+            // Sum matches but not a legal move (could happen due to direct match rule)
+            messageEl.textContent = 'This combination isn\'t valid. Try a different selection.';
+        }
     } else {
         messageEl.textContent = 'Select card(s) to capture or select a different hand card.';
     }
@@ -245,8 +276,34 @@ function handleTableCardClick(card) {
 
 // Play a card from hand
 function playCard(card, tableCards) {
+    // Before executing player's move, get AI recommendation for post-game analysis
+    // Create a temporary state with the card still in player's hand
+    const tempState = {
+        table: [...model.gameState.table],
+        playerHand: [...model.gameState.playerHand],
+        aiHand: [] // Not needed for this function
+    };
+    
+    // Get player analysis state
+    const playerAnalysisState = model.getPlayerAnalysisState(
+        model.gameState.playerHand, 
+        model.gameState.table
+    );
+    
+    // Get legal moves for this state
+    const playerLegalMoves = model.findAllLegalMoves(tempState, 'player');
+    
+    // Get AI recommendation
+    const aiRecommendation = ai.recommendMove(playerLegalMoves, playerAnalysisState);
+    
+    // Now execute the player's move
     const result = model.playPlayerCard(card, tableCards);
     if (!result) return;
+    
+    // Add AI recommendation to the result for analysis
+    if (result.moveData) {
+        result.moveData.aiRecommendation = aiRecommendation;
+    }
     
     if (result.action === 'capture') {
         if (result.scopaScored) {
@@ -284,11 +341,20 @@ function aiTurn() {
     messageEl.textContent = 'AI is thinking...';
     
     setTimeout(() => {
-        const result = model.executeAITurn();
+        // Get AI's limited view of the game state
+        const aiGameState = model.getAIGameState();
         
-        if (result) {
+        // Get legal moves for the AI
+        const legalMoves = model.findAllLegalMoves(model.gameState, 'ai');
+        
+        // Get AI decision using the AI module
+        const aiDecision = ai.makeAIDecision(legalMoves, aiGameState);
+        
+        if (aiDecision.move) {
+            const { card, tableCards } = aiDecision.move;
+            
             // Show the card being played
-            const tempCardEl = createCardElement(result.card);
+            const tempCardEl = createCardElement(card);
             tempCardEl.style.position = 'absolute';
             tempCardEl.style.top = '50%';
             tempCardEl.style.left = '50%';
@@ -300,14 +366,17 @@ function aiTurn() {
                 // Remove the temporary card
                 tempCardEl.remove();
                 
+                // Execute the move in the model
+                const result = model.executeMove('ai', card, tableCards);
+                
                 if (result.action === 'capture') {
                     if (result.scopaScored) {
                         messageEl.textContent = 'AI got a SCOPA!';
                     } else {
-                        messageEl.textContent = `AI captures with ${result.card.value} of ${result.card.suit}.`;
+                        messageEl.textContent = `AI captures with ${card.value} of ${card.suit}.`;
                     }
                 } else {
-                    messageEl.textContent = `AI discards ${result.card.value} of ${result.card.suit} to table.`;
+                    messageEl.textContent = `AI discards ${card.value} of ${card.suit} to table.`;
                 }
                 
                 // Update the UI

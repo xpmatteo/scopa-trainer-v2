@@ -228,20 +228,154 @@ function captureCards(player, playedCard, capturedCards) {
     return false; // No scopa
 }
 
+/**
+ * Get the current game state from the AI's perspective
+ * This contains only information that would be available to the AI player
+ * @returns {Object} AI's view of the game state
+ */
+function getAIGameState() {
+    // Calculate outstanding cards (not in AI hand, not on table, not in capture piles)
+    const outstandingCards = calculateOutstandingCards();
+    
+    return {
+        tableCards: [...gameState.table],
+        handCards: [...gameState.aiHand],
+        captureCards: [...gameState.aiCaptures],
+        opponentCaptureCards: [...gameState.playerCaptures],
+        outstandingCards: outstandingCards
+    };
+}
+
+/**
+ * Calculate cards that are not visible to the AI
+ * These could be in the deck or in the opponent's hand
+ * @returns {Array} Array of cards not visible to the AI
+ */
+function calculateOutstandingCards() {
+    const visibleCards = [
+        ...gameState.table,
+        ...gameState.aiHand,
+        ...gameState.aiCaptures,
+        ...gameState.playerCaptures
+    ].map(card => card.id);
+    
+    // Create a full deck
+    const allCards = [];
+    for (const suit of suits) {
+        for (let value = 1; value <= 10; value++) {
+            allCards.push({
+                suit: suit,
+                value: value,
+                id: `${suit}-${value}`
+            });
+        }
+    }
+    
+    // Filter out visible cards
+    return allCards.filter(card => !visibleCards.includes(card.id));
+}
+
+/**
+ * Get player state for move analysis and AI recommendations
+ * @param {Array} playerHand - The player's current hand
+ * @param {Array} tableState - The current state of the table
+ * @returns {Object} Player and table state for analysis
+ */
+function getPlayerAnalysisState(playerHand, tableState) {
+    return {
+        tableCards: [...tableState],
+        handCards: [...playerHand],
+        captureCards: [...gameState.playerCaptures],
+        opponentCaptureCards: [...gameState.aiCaptures],
+        outstandingCards: [] // Not needed for analysis
+    };
+}
+
+/**
+ * Execute a move for the specified player
+ * @param {string} player - The player making the move ('player' or 'ai')
+ * @param {Object} card - The card being played
+ * @param {Array} tableCards - The table cards being captured (empty array for discard)
+ * @returns {Object} Result of the move
+ */
+function executeMove(player, card, tableCards) {
+    // Remove the played card from the player's hand
+    const hand = player === 'player' ? gameState.playerHand : gameState.aiHand;
+    const cardIndex = hand.findIndex(c => c.id === card.id);
+    
+    if (cardIndex === -1) return null;
+    hand.splice(cardIndex, 1);
+    
+    gameState.moveCount++;
+    let scopaScored = false;
+    
+    // Check if capturing or discarding
+    if (tableCards.length > 0) {
+        // Capture
+        scopaScored = captureCards(player, card, tableCards);
+    } else {
+        // Discard to table
+        gameState.table.push(card);
+    }
+    
+    // Check if the round is over
+    const roundOver = checkRoundEnd();
+    
+    // Switch turn
+    gameState.currentTurn = player === 'player' ? 'ai' : 'player';
+    
+    // For player moves, record for analysis
+    let moveData = null;
+    if (player === 'player') {
+        // Reset selections
+        gameState.selectedCard = null;
+        gameState.selectedTableCards = [];
+    }
+    
+    return {
+        action: tableCards.length > 0 ? 'capture' : 'discard',
+        card: card,
+        tableCards: tableCards,
+        scopaScored,
+        roundOver,
+        moveData
+    };
+}
+
 // Play a card from player's hand
 function playPlayerCard(card, tableCards) {
     gameState.moveCount++;
     
-    // Find all possible captures before making the move (for analysis)
-    const allPossibleCaptures = findCaptures(card, gameState.table);
+    // Create a temp state to analyze all legal moves before we change the actual state
+    const tempState = {
+        table: [...gameState.table],
+        playerHand: [...gameState.playerHand],
+        aiHand: [] // Not needed for this function
+    };
+    
+    // Find all legal moves available before making the move (for analysis)
+    const legalMoves = findAllLegalMoves(tempState);
+    
+    // Extract possible captures for this card from the legal moves
+    const legalMovesForCard = legalMoves.filter(move => move.card.id === card.id);
+    const allPossibleCaptures = legalMovesForCard
+        .filter(move => move.type === 'capture')
+        .map(move => move.captureCards);
     
     // Remove the played card from hand
     const cardIndex = gameState.playerHand.findIndex(c => c.id === card.id);
     if (cardIndex === -1) return null;
     gameState.playerHand.splice(cardIndex, 1);
     
-    // Find what the AI would have done
-    const aiRecommendation = computeAIRecommendation(gameState.playerHand.concat([card]), gameState.table);
+    // Get player analysis state for AI recommendation
+    const playerAnalysisState = getPlayerAnalysisState(gameState.playerHand.concat([card]), gameState.table);
+    
+    // For AI recommendations, we need to get the legal moves for the temp state
+    const playerLegalMoves = findAllLegalMoves(tempState, 'player');
+    
+    // We need this to be added in controller.js which has access to the ai module
+    // This is a placeholder that will be updated later
+    let aiRecommendation = null;
     
     // Record this move for analysis
     const moveData = recordPlayerMove(card, tableCards, allPossibleCaptures, aiRecommendation);
@@ -275,48 +409,6 @@ function playPlayerCard(card, tableCards) {
     };
 }
 
-// Execute AI turn
-function executeAITurn() {
-    if (gameState.currentTurn !== 'ai' || gameState.gameOver) return null;
-    
-    // Find the best move
-    const bestMove = findBestAIMove();
-    
-    if (bestMove) {
-        const { card, tableCards } = bestMove;
-        
-        // Remove card from AI's hand
-        const cardIndex = gameState.aiHand.findIndex(c => c.id === card.id);
-        gameState.aiHand.splice(cardIndex, 1);
-        
-        let scopaScored = false;
-        
-        if (tableCards.length > 0) {
-            // Capture
-            scopaScored = captureCards('ai', card, tableCards);
-        } else {
-            // Discard
-            gameState.table.push(card);
-        }
-        
-        // Check if the round is over
-        const roundOver = checkRoundEnd();
-        
-        // Switch turn to player
-        gameState.currentTurn = 'player';
-        
-        return {
-            card,
-            tableCards,
-            action: tableCards.length > 0 ? 'capture' : 'discard',
-            scopaScored,
-            roundOver
-        };
-    }
-    
-    return null;
-}
-
 // Check if the round is over and handle end-of-round actions
 function checkRoundEnd() {
     if (gameState.playerHand.length === 0 && gameState.aiHand.length === 0) {
@@ -343,199 +435,6 @@ function checkRoundEnd() {
     }
     
     return false;
-}
-
-// Find the best move for the AI
-function findBestAIMove() {
-    // Priority 1: Find any capture that would result in a scopa
-    for (const card of gameState.aiHand) {
-        const possibleCaptures = findCaptures(card, gameState.table);
-        
-        for (const capture of possibleCaptures) {
-            if (capture.length === gameState.table.length) {
-                return { card, tableCards: capture };
-            }
-        }
-    }
-    
-    // Priority 2: Capture the 7 of coins if possible
-    const setteBello = gameState.table.find(card => card.suit === 'coins' && card.value === 7);
-    if (setteBello) {
-        for (const card of gameState.aiHand) {
-            const possibleCaptures = findCaptures(card, gameState.table);
-            
-            for (const capture of possibleCaptures) {
-                if (capture.some(c => c.suit === 'coins' && c.value === 7)) {
-                    return { card, tableCards: capture };
-                }
-            }
-        }
-    }
-    
-    // Priority 3: Capture as many cards as possible
-    let bestCapture = null;
-    let mostCards = 0;
-    
-    for (const card of gameState.aiHand) {
-        const possibleCaptures = findCaptures(card, gameState.table);
-        
-        for (const capture of possibleCaptures) {
-            if (capture.length > mostCards) {
-                mostCards = capture.length;
-                bestCapture = { card, tableCards: capture };
-            }
-        }
-    }
-    
-    if (bestCapture) {
-        return bestCapture;
-    }
-    
-    // Priority 4: Discard a card that doesn't help the player
-    const aiCard = gameState.aiHand[Math.floor(Math.random() * gameState.aiHand.length)];
-    return { card: aiCard, tableCards: [] };
-}
-
-// Compute what the AI would recommend for the player
-function computeAIRecommendation(playerHand, tableState) {
-    // Same logic as findBestAIMove but applied to player's hand
-    let recommendation = null;
-    
-    // Priority 1: Find any capture that would result in a scopa
-    for (const card of playerHand) {
-        const possibleCaptures = findCaptures(card, tableState);
-        
-        for (const capture of possibleCaptures) {
-            if (capture.length === tableState.length) {
-                return { 
-                    card, 
-                    tableCards: capture,
-                    reasoning: "This creates a scopa by clearing the table",
-                    priority: "Highest"
-                };
-            }
-        }
-    }
-    
-    // Priority 2: Capture the 7 of coins if possible
-    const setteBello = tableState.find(card => card.suit === 'coins' && card.value === 7);
-    if (setteBello) {
-        for (const card of playerHand) {
-            const possibleCaptures = findCaptures(card, tableState);
-            
-            for (const capture of possibleCaptures) {
-                if (capture.some(c => c.suit === 'coins' && c.value === 7)) {
-                    return { 
-                        card, 
-                        tableCards: capture,
-                        reasoning: "This captures the valuable 7 of coins (Sette Bello)",
-                        priority: "High"
-                    };
-                }
-            }
-        }
-    }
-    
-    // Priority 3: Capture as many coins as possible
-    let bestCoinsCapture = null;
-    let mostCoins = 0;
-    
-    for (const card of playerHand) {
-        const possibleCaptures = findCaptures(card, tableState);
-        
-        for (const capture of possibleCaptures) {
-            const coinCount = capture.filter(c => c.suit === 'coins').length;
-            if (coinCount > mostCoins) {
-                mostCoins = coinCount;
-                bestCoinsCapture = { 
-                    card, 
-                    tableCards: capture,
-                    reasoning: `This captures ${coinCount} coin cards, helping secure the 'most coins' point`,
-                    priority: "Medium-High"
-                };
-            }
-        }
-    }
-    
-    if (bestCoinsCapture && mostCoins > 0) {
-        return bestCoinsCapture;
-    }
-    
-    // Priority 4: Capture high-value primera cards
-    const primeraCards = tableState.filter(c => c.value === 7 || c.value === 6 || c.value === 1 || c.value === 5);
-    if (primeraCards.length > 0) {
-        for (const card of playerHand) {
-            const possibleCaptures = findCaptures(card, tableState);
-            
-            for (const capture of possibleCaptures) {
-                if (capture.some(c => c.value === 7 || c.value === 6 || c.value === 1 || c.value === 5)) {
-                    return { 
-                        card, 
-                        tableCards: capture,
-                        reasoning: "This captures high-value primera cards",
-                        priority: "Medium"
-                    };
-                }
-            }
-        }
-    }
-    
-    // Priority 5: Capture as many cards as possible
-    let bestCapture = null;
-    let mostCards = 0;
-    
-    for (const card of playerHand) {
-        const possibleCaptures = findCaptures(card, tableState);
-        
-        for (const capture of possibleCaptures) {
-            if (capture.length > mostCards) {
-                mostCards = capture.length;
-                bestCapture = { 
-                    card, 
-                    tableCards: capture,
-                    reasoning: `This captures ${capture.length} cards, helping secure the 'most cards' point`,
-                    priority: "Medium"
-                };
-            }
-        }
-    }
-    
-    if (bestCapture) {
-        return bestCapture;
-    }
-    
-    // Priority 6: Strategic discard (avoid making combinations easy to capture)
-    // Find the card that creates the fewest potential captures
-    let bestDiscard = null;
-    let lowestRisk = Infinity;
-    
-    for (const card of playerHand) {
-        // Calculate risk by checking how many new combinations this card would create
-        const potentialTableAfterDiscard = [...tableState, card];
-        let riskScore = 0;
-        
-        for (let i = 1; i <= 10; i++) {
-            const possibleCaptures = findCaptures({value: i}, potentialTableAfterDiscard);
-            riskScore += possibleCaptures.length;
-        }
-        
-        if (riskScore < lowestRisk) {
-            lowestRisk = riskScore;
-            bestDiscard = { 
-                card, 
-                tableCards: [],
-                reasoning: "No captures possible. This discard creates the fewest potential captures for the opponent",
-                priority: "Low"
-            };
-        }
-    }
-    
-    return bestDiscard || { 
-        card: playerHand[0], 
-        tableCards: [],
-        reasoning: "No good options available. Discarding this card is as good as any other.",
-        priority: "Lowest"
-    };
 }
 
 // Record player move for analysis
@@ -884,6 +783,8 @@ export {
     findCaptures,
     findAllLegalMoves,
     playPlayerCard,
-    executeAITurn,
+    executeMove,
+    getAIGameState,
+    getPlayerAnalysisState,
     generateGameAnalysis
 };

@@ -8,6 +8,7 @@
 - ✅ Capture logic with combination detection
 - ✅ Score calculation (scopa points, card counts, etc.)
 - ✅ Game flow from start to completion
+- ✅ Centralized legal moves validation
 
 ### User Interface
 - ✅ Responsive card layout with proper styling
@@ -20,6 +21,8 @@
 - ✅ Strategic AI decision making with priorities
 - ✅ AI move execution with visual feedback
 - ✅ No "cheating" - AI only uses visible information
+- ✅ Unified legal moves system for consistent AI decision making
+- ✅ Pure function pattern - AI completely separated from global state
 
 ### Post-Game Analysis
 - ✅ Detailed move-by-move analysis
@@ -42,15 +45,17 @@
   - Implemented MVC architecture
   - Separated JavaScript into modular files
   - Used ES6 modules with import/export
-- [ ] Unit tests for game logic
+  - Eliminated duplicate logic with centralized legal moves function
+  - Implemented AI as a pure function with no access to global state
+- ✅ Implemented test suite for legal moves functionality
+- [ ] More comprehensive unit tests for game logic
 - [ ] Better error handling
 
 ## Current Status
-- **Overall:** Functional implementation with core features complete and code architecture improved
-- **Stage:** Code architecture refinement complete; ready for feature enhancements
-- **Priority:** Next steps include implementing local storage for game persistence and enhancing AI difficulty levels
+- **Overall:** Functional implementation with core features complete and code architecture improved with modular AI
+- **Stage:** Code architecture refinement complete with unified legal moves system and pure AI module; ready for additional enhancements
+- **Priority:** Next steps include implementing local storage for game persistence and developing multiple AI difficulty levels (which is now much easier with the new AI module)
 
 ## Known Issues
-- AI decision making could be more sophisticated for advanced strategies
 - No formal accessibility features implemented
 - Game state not persisted between sessions

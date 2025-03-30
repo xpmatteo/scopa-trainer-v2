@@ -11,13 +11,13 @@ flowchart TD
     subgraph Model Layer
         Model[Model Module] --> GameState[Game State]
         Model --> GameLogic[Game Logic]
-        Model --> AIEngine[AI Engine]
         Model --> AnalysisEngine[Analysis Engine]
     end
     
     subgraph Controller Layer
         Controller[Controller Module] --> UIHandlers[Event Handlers]
         Controller --> Rendering[Rendering Logic]
+        Controller --> AI[AI Module]
     end
     
     Controller <--> Model
@@ -45,7 +45,8 @@ flowchart TD
 - **Declarative Updates**: UI renders from state rather than imperative mutations
 
 ### AI Implementation
-- **Strategic Prioritization**: AI uses a priority-based decision system rather than pure minimax
+- **Pure Function Pattern**: AI is implemented as a module with pure functions that receive only the information an AI player would know
+- **Strategic Prioritization**: AI uses a priority-based decision system
 - **Non-Deterministic Play**: Some randomness to prevent predictable patterns
 - **Transparent Reasoning**: AI explains its move rationale for learning purposes
 
@@ -84,6 +85,17 @@ flowchart TD
 }
 ```
 
+### AI Game State
+```javascript
+{
+    tableCards: Card[],              // Cards visible to all players
+    handCards: Card[],               // Cards in AI's hand
+    captureCards: Card[],            // Cards AI has captured
+    opponentCaptureCards: Card[],    // Cards opponent has captured 
+    outstandingCards: Card[]         // Cards not visible (in deck or opponent's hand)
+}
+```
+
 ### Move Analysis Record
 ```javascript
 {
@@ -112,9 +124,19 @@ flowchart TD
 - **Direct Matching**: Card equals a single table card value
 - **Combination Capture**: Card value equals sum of multiple table cards
 - **Combinatorial Search**: Find all possible valid capture combinations
+- **Legal Moves System**: Centralized validation of all possible legal moves
+
+### Move Validation
+- **Unified Legal Moves**: A central `findAllLegalMoves` function determines all valid moves
+- **Rule Enforcement**: Special rules like prioritizing direct matches are enforced consistently
+- **Move Generation**: Both capture and discard moves are generated based on current game state
 
 ### AI Decision Making
-1. Check for Scopa opportunities (clear the table)
-2. Prioritize capturing high-value cards (7 of coins)
-3. Look for opportunities to capture multiple cards
-4. Make strategic discards to minimize opponent capture opportunities
+1. Model provides AI's limited view of the game state (only what it would know)
+2. Model provides all legal moves to the AI module
+3. AI pure function processes the legal moves with the limited game state:
+   - Check for Scopa opportunities (clear the table)
+   - Prioritize capturing high-value cards (7 of coins)
+   - Look for opportunities to capture multiple cards
+4. AI returns the chosen move and rationale without modifying any state
+5. Controller takes the AI's decision and executes the chosen move through the model
