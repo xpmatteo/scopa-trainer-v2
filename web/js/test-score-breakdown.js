@@ -4,21 +4,13 @@ describe('Score Breakdown Tests', function() {
     // Import functions from model.js
     let model;
     
-    beforeEach(function() {
-        // Import the module for testing
-        if (typeof window.modelModule !== 'undefined') {
-            model = window.modelModule;
-        } else {
-            console.error('Model module not available as window.modelModule');
-            // Try to import directly
-            try {
-                import('./model.js').then(module => {
-                    model = module;
-                    console.log('Model module imported directly');
-                });
-            } catch (e) {
-                console.error('Failed to import model module:', e);
-            }
+    // Use Jasmine's async beforeAll to ensure the module is loaded before tests run
+    beforeAll(async function() {
+        try {
+            model = await import('./model.js');
+            console.log('Model module imported successfully');
+        } catch (e) {
+            console.error('Failed to import model module:', e);
         }
     });
     

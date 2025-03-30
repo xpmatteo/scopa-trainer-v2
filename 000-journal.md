@@ -7,4 +7,5 @@
 (learned to ask OpenRouter to sort by cheapest provider!!!)
 - Separate AI to a separate module, with proper separation of visibility $1.28
 - Use Jasmine for testing $0.34
-- Score breakdown during play: $2,50
+- Score breakdown during play: $3,25
+
