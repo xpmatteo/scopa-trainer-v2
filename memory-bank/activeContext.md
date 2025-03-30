@@ -12,6 +12,10 @@
   - Product Context
   - System Patterns
   - Technical Context
+- Converted test files to use Jasmine test framework:
+  - Created a general test runner (tests.html) for all tests
+  - Restructured test-legal-moves.js to use Jasmine's describe/it pattern
+  - Set up a framework that can easily accommodate additional test files
 - Refactored code architecture from monolithic to modular:
   - Separated JavaScript from HTML file
   - Implemented Model-View-Controller pattern
@@ -35,6 +39,7 @@
   - Post-game analysis features
   - Move replay system
   - Unified legal moves validation system
+  - Jasmine-based test suite for game functionality
 
 ## Active Decisions
 - Using centralized legal moves system for all move validation
@@ -50,11 +55,13 @@
 5. ✅ Implement centralized legal moves functionality
 6. ✅ Refactor controller and model to use the legal moves system
 7. ✅ Separate AI into a pure function module
-8. Implement local storage for game state persistence
-9. Develop multiple AI difficulty levels (now simplified with the new AI module)
-10. Add statistics tracking across games
-11. Implement accessibility improvements
-12. Optimize mobile experience
+8. ✅ Convert tests to use Jasmine test framework
+9. Add additional tests for other game components
+10. Implement local storage for game state persistence
+11. Develop multiple AI difficulty levels (now simplified with the new AI module)
+12. Add statistics tracking across games
+13. Implement accessibility improvements
+14. Optimize mobile experience
 
 ## Open Questions
 - What additional AI improvements can be built on top of the pure function system?

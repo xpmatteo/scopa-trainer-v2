@@ -61,10 +61,19 @@
 - VSCode with HTML/CSS/JavaScript extensions
 
 ### Testing Approach
+- Jasmine testing framework (via CDN)
 - Dedicated test suite for legal moves functionality
 - HTML-based test runner with visual results
 - Console-based debugging
 - Snapshot testing of game state transitions
+- General test runner (tests.html) for all test suites
+
+## Development Environment
+
+### Local Server
+- HTTP server running on port 8000
+- Project files accessible at http://localhost:8000/web/
+- No need to start the server manually as it's always running
 
 ## Deployment
 
