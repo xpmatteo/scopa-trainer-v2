@@ -15,7 +15,9 @@
 - ✅ Card selection and capture highlighting
 - ✅ Turn indicators and player feedback
 - ✅ Score display during gameplay
+- ✅ Detailed score breakdown panels for training purposes with advantage highlighting
 - ✅ Game controls (new game, help)
+- ✅ Clean separation of HTML, CSS and JavaScript with external style sheet
 
 ### AI Implementation
 - ✅ Strategic AI decision making with priorities
@@ -53,7 +55,7 @@
 
 ## Current Status
 - **Overall:** Functional implementation with core features complete and code architecture improved with modular AI
-- **Stage:** Code architecture refinement complete with unified legal moves system and pure AI module; ready for additional enhancements
+- **Stage:** Code architecture refinement complete with unified legal moves system, pure AI module, and score breakdown for training; ready for additional enhancements
 - **Priority:** Next steps include implementing local storage for game persistence and developing multiple AI difficulty levels (which is now much easier with the new AI module)
 
 ## Known Issues

@@ -18,6 +18,7 @@
   - Set up a framework that can easily accommodate additional test files
 - Refactored code architecture from monolithic to modular:
   - Separated JavaScript from HTML file
+  - Extracted CSS into separate style.css file
   - Implemented Model-View-Controller pattern
   - Created module-based imports
 - Implemented centralized legal moves functionality:
@@ -25,6 +26,11 @@
   - Refactored AI decision-making to use this function
   - Updated controller to use legal moves for player interactions
   - Eliminated duplicate logic across the codebase
+- Implemented score breakdown feature for training purposes:
+  - Added detailed scorekeeping panels on both sides of the game board
+  - Displays cards captured, coins captured, sette bello status, primiera cards, and scopa count
+  - Includes visual highlighting for normal and strong advantages
+  - Provides real-time feedback on score progress during gameplay
 - Separated AI into a pure function module:
   - Created dedicated ai.js module with no direct access to global state
   - Refactored AI to accept only the information it can "see"
@@ -36,10 +42,12 @@
   - Complete game rules and mechanics
   - AI opponent with strategic decision making as a pure function
   - Interactive UI with card selection
+  - Real-time score breakdown panels for training
   - Post-game analysis features
   - Move replay system
   - Unified legal moves validation system
   - Jasmine-based test suite for game functionality
+  - Clean architecture with separate HTML, CSS, and JavaScript files
 
 ## Active Decisions
 - Using centralized legal moves system for all move validation
@@ -56,12 +64,13 @@
 6. ✅ Refactor controller and model to use the legal moves system
 7. ✅ Separate AI into a pure function module
 8. ✅ Convert tests to use Jasmine test framework
-9. Add additional tests for other game components
-10. Implement local storage for game state persistence
-11. Develop multiple AI difficulty levels (now simplified with the new AI module)
-12. Add statistics tracking across games
-13. Implement accessibility improvements
-14. Optimize mobile experience
+9. ✅ Implement score breakdown feature for training
+10. Add additional tests for other game components
+11. Implement local storage for game state persistence
+12. Develop multiple AI difficulty levels (now simplified with the new AI module)
+13. Add statistics tracking across games
+14. Implement accessibility improvements
+15. Optimize mobile experience
 
 ## Open Questions
 - What additional AI improvements can be built on top of the pure function system?

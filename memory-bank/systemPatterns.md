@@ -12,6 +12,7 @@ flowchart TD
         Model[Model Module] --> GameState[Game State]
         Model --> GameLogic[Game Logic]
         Model --> AnalysisEngine[Analysis Engine]
+        Model --> ScoreBreakdown[Score Breakdown]
     end
     
     subgraph Controller Layer
@@ -23,7 +24,8 @@ flowchart TD
     Controller <--> Model
     
     subgraph View Layer
-        HTML[HTML/CSS] <--> DOM[DOM Elements]
+        HTML[HTML] <--> DOM[DOM Elements]
+        CSS[External CSS] --> DOM
     end
     
     Controller <--> DOM
@@ -38,11 +40,13 @@ flowchart TD
 - **Centralized State**: A single `gameState` object tracks all aspects of the game
 - **Immutable Snapshots**: State history is preserved for move analysis and replay
 - **Event-Driven Updates**: UI responds to state changes rather than directly modifying visuals
+- **Real-time Score Analysis**: Score breakdown continuously updates to reflect current game state
 
 ### Rendering System
 - **Component-Based Rendering**: Game board, cards, hands, and controls are modular
-- **Visual Feedback Pattern**: Selected cards have visual indicators
+- **Visual Feedback Pattern**: Selected cards and score advantages have visual indicators
 - **Declarative Updates**: UI renders from state rather than imperative mutations
+- **Separated Presentation**: HTML structure, CSS styling, and JavaScript behavior are in separate files
 
 ### AI Implementation
 - **Pure Function Pattern**: AI is implemented as a module with pure functions that receive only the information an AI player would know
@@ -82,6 +86,29 @@ flowchart TD
     currentTurn: 'player' | 'ai',
     gameOver: boolean,
     moveCount: number
+}
+```
+
+### Score Breakdown
+```javascript
+{
+    player: {
+        cardsCaptured: number,
+        coinsCaptured: number,
+        hasSetteBello: boolean,
+        primieraCards: {
+            sevens: number,
+            sixes: number,
+            aces: number
+        },
+        scopaCount: number,
+        cardAdvantage: 'normal' | 'strong' | null,
+        coinAdvantage: 'normal' | 'strong' | null,
+        primieraAdvantage: 'normal' | 'strong' | null
+    },
+    ai: {
+        // Same structure as player
+    }
 }
 ```
 

@@ -19,7 +19,10 @@
 - Flexbox layout support
 
 ### Code Organization
-- HTML file with embedded CSS and separate JavaScript modules
+- Clean separation of HTML, CSS, and JavaScript files:
+  - **scopa-enhanced.html**: HTML structure
+  - **css/style.css**: External stylesheet for all styles
+  - **js/**: Directory containing all JavaScript modules
 - MVC architecture with proper separation of concerns:
   - **model.js**: Game state and business logic
   - **controller.js**: UI handling and DOM manipulation
@@ -42,8 +45,9 @@
 
 ### Rendering Approach
 - DOM manipulation for UI updates
-- CSS classes for visual state (selected, highlighted)
+- CSS classes for visual state (selected, highlighted, score advantages)
 - CSS transitions for animation effects
+- Responsive design with mobile considerations
 
 ## Dependencies
 
