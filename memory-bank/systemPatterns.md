@@ -2,15 +2,34 @@
 
 ## Architecture Overview
 
-The Scopa Trainer is implemented as a client-side browser application with a modular, event-driven architecture:
+The Scopa Trainer is implemented as a client-side browser application with a modular, event-driven architecture based on the Model-View-Controller (MVC) pattern:
 
 ```mermaid
 flowchart TD
-    UI[UI Components] <--> GameState[Game State]
-    GameState <--> GameLogic[Game Logic]
-    GameLogic <--> AIEngine[AI Engine]
-    GameState <--> AnalysisEngine[Analysis Engine]
-    GameState --> LocalStorage[LocalStorage]
+    Main[Main Module] --> Controller
+    
+    subgraph Model Layer
+        Model[Model Module] --> GameState[Game State]
+        Model --> GameLogic[Game Logic]
+        Model --> AIEngine[AI Engine]
+        Model --> AnalysisEngine[Analysis Engine]
+    end
+    
+    subgraph Controller Layer
+        Controller[Controller Module] --> UIHandlers[Event Handlers]
+        Controller --> Rendering[Rendering Logic]
+    end
+    
+    Controller <--> Model
+    
+    subgraph View Layer
+        HTML[HTML/CSS] <--> DOM[DOM Elements]
+    end
+    
+    Controller <--> DOM
+    
+    %% Future extension
+    GameState -.-> LocalStorage[LocalStorage]
 ```
 
 ## Key Design Patterns

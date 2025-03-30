@@ -1,19 +1,23 @@
 # Scopa Trainer Project Rules
 
 ## Code Style Preferences
-- Single HTML file containing all CSS and JavaScript
+- HTML file containing CSS with separate JavaScript modules
+- ES6+ JavaScript module system with imports/exports
 - ES6+ JavaScript constructs preferred
 - CSS uses flexbox for responsive layouts
 - Semantic variable naming (descriptive rather than abbreviated)
 
 ## Project Structure
-- Keep all game logic in the single HTML file for simplicity
-- Organize JavaScript functions into logical groups:
-  - Game initialization
-  - Card manipulation
-  - Player interaction
-  - AI logic
-  - Analysis features
+- MVC architecture with clear separation of concerns:
+  - model.js: Game state and business logic
+  - controller.js: UI handling and DOM manipulation
+  - main.js: Application initialization and event binding
+- Organize JavaScript functions into logical groups by responsibility:
+  - Game initialization and state management
+  - Card manipulation and game mechanics
+  - Player interaction and event handling
+  - AI logic and decision making
+  - Analysis features and game evaluation
 
 ## Implementation Patterns
 - Use central gameState object to manage all state

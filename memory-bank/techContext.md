@@ -19,8 +19,12 @@
 - Flexbox layout support
 
 ### Code Organization
-- Single HTML file with embedded CSS and JavaScript
-- Modular JavaScript functions with clear separation of concerns
+- HTML file with embedded CSS and separate JavaScript modules
+- MVC architecture with proper separation of concerns:
+  - **model.js**: Game state and business logic
+  - **controller.js**: UI handling and DOM manipulation
+  - **main.js**: Application initialization and event binding
+- ES6 modules with import/export pattern
 - Event-driven architecture for handling user interactions
 
 ### Rendering Approach
