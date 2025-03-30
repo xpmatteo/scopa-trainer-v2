@@ -146,28 +146,53 @@ function findCaptures(card, tableCards) {
         });
     }
     
-    // Check for combinations (simplified algorithm - not exhaustive)
-    for (let i = 0; i < tableCards.length; i++) {
-        for (let j = i + 1; j < tableCards.length; j++) {
-            if (tableCards[i].value + tableCards[j].value === card.value) {
-                possibleCaptures.push([tableCards[i], tableCards[j]]);
-            }
+// Find all combinations using a more comprehensive approach
+// This recursive function finds all combinations of cards that sum to a target value
+const findAllCombinations = (cards, targetValue, maxCards = 4) => {
+    const results = [];
+    
+    // Helper function to find combinations
+    const findCombination = (startIndex, currentSum, currentCombination) => {
+        // If we found a valid combination
+        if (currentSum === targetValue && currentCombination.length > 0) {
+            results.push([...currentCombination]);
+            return;
+        }
+        
+        // If sum exceeds target or we've reached max cards, stop this branch
+        if (currentSum > targetValue || currentCombination.length >= maxCards) {
+            return;
+        }
+        
+        // Try adding each remaining card to our combination
+        for (let i = startIndex; i < cards.length; i++) {
+            // Skip duplicates to avoid identical combinations
+            if (i > startIndex && JSON.stringify(cards[i]) === JSON.stringify(cards[i-1])) continue;
             
-            // Try 3-card combinations
-            for (let k = j + 1; k < tableCards.length; k++) {
-                if (tableCards[i].value + tableCards[j].value + tableCards[k].value === card.value) {
-                    possibleCaptures.push([tableCards[i], tableCards[j], tableCards[k]]);
-                }
-                
-                // Try 4-card combinations (not common but possible)
-                for (let l = k + 1; l < tableCards.length; l++) {
-                    if (tableCards[i].value + tableCards[j].value + tableCards[k].value + tableCards[l].value === card.value) {
-                        possibleCaptures.push([tableCards[i], tableCards[j], tableCards[k], tableCards[l]]);
-                    }
-                }
-            }
+            currentCombination.push(cards[i]);
+            findCombination(i + 1, currentSum + cards[i].value, currentCombination);
+            currentCombination.pop();
+        }
+    };
+    
+    // Sort cards to help with duplicate detection
+    const sortedCards = [...cards].sort((a, b) => a.value - b.value);
+    
+    // Start recursive search
+    findCombination(0, 0, []);
+    return results;
+};
+
+// Check for combinations using the comprehensive algorithm
+// Only find combinations of 2 or more cards
+if (tableCards.length >= 2) {
+    const combinations = findAllCombinations(tableCards, card.value);
+    for (const combo of combinations) {
+        if (combo.length >= 2) { // Only add combinations of 2+ cards
+            possibleCaptures.push(combo);
         }
     }
+}
     
     return possibleCaptures;
 }
@@ -816,8 +841,17 @@ function findAllLegalMoves(state, player = 'player') {
         const possibleCaptures = findCaptures(card, state.table);
         
         if (possibleCaptures.length > 0) {
-            // For each possible capture, add a capture move
-            possibleCaptures.forEach(captureCards => {
+            // Check for direct matches (single card captures)
+            const directMatches = possibleCaptures.filter(capture => 
+                capture.length === 1 && capture[0].value === card.value
+            );
+            
+            // Apply Scopa rule: if direct matches exist, only allow those
+            // (no combinations allowed when a direct match is available)
+            const allowedCaptures = directMatches.length > 0 ? directMatches : possibleCaptures;
+            
+            // For each valid capture, add a capture move
+            allowedCaptures.forEach(captureCards => {
                 legalMoves.push({
                     type: 'capture',
                     card: card,
