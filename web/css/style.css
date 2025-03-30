@@ -19,15 +19,15 @@ body {
     font-size: 14px;
     z-index: 10;
     box-shadow: 0 0 10px rgba(0,0,0,0.5);
-    top: 120px;
+    top: 300px; /* Positioned to align with the table area */
 }
 
 .ai-score-breakdown {
-    left: 20px; /* Fixed position at left edge with margin */
+    left: -200px; /* Position to the left of the game container */
 }
 
 .player-score-breakdown {
-    right: 20px; /* Fixed position at right edge with margin */
+    right: -200px; /* Position to the right of the game container */
 }
 
 .breakdown-title {
