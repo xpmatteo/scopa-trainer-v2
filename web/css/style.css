@@ -1,8 +1,21 @@
+/* Define CSS variables for reusable values */
+:root {
+    --primary-bg: #076324;
+    --secondary-bg: #054d1c;
+    --highlight-color: #DAA520;
+    --text-color: white;
+    --card-width: 80px;
+    --card-height: 120px;
+    --hand-bg-ai: rgba(139, 0, 0, 0.2);
+    --hand-bg-player: rgba(0, 0, 139, 0.2);
+    --hand-bg-table: rgba(0, 0, 0, 0.2);
+}
+
 /* General styles for the game */
 body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #076324;
-    color: white;
+    background-color: var(--primary-bg);
+    color: var(--text-color);
     margin: 0;
     padding: 20px;
     display: flex;
@@ -75,7 +88,7 @@ h1 {
 .scoreboard {
     display: flex;
     justify-content: space-between;
-    background-color: #054d1c;
+    background-color: var(--secondary-bg);
     padding: 10px 20px;
     border-radius: 8px;
     margin-bottom: 10px;
@@ -95,6 +108,7 @@ h1 {
     margin: 5px 0;
 }
 
+/* Consolidate styles for hands and table */
 .ai-hand, .table, .player-hand {
     display: flex;
     justify-content: center;
@@ -102,32 +116,32 @@ h1 {
     flex-wrap: wrap;
     gap: 10px;
     padding: 15px;
-    background-color: rgba(0, 0, 0, 0.2);
+    background-color: var(--hand-bg-table); /* Default for table */
     border-radius: 8px;
     position: relative;
 }
 
 .ai-hand {
-    background-color: rgba(139, 0, 0, 0.2);
+    background-color: var(--hand-bg-ai);
 }
 
 .player-hand {
-    background-color: rgba(0, 0, 139, 0.2);
+    background-color: var(--hand-bg-player);
 }
 
 .hand-label {
     position: absolute;
     top: -10px;
     left: 10px;
-    background-color: #076324;
+    background-color: var(--primary-bg);
     padding: 0 10px;
     border-radius: 4px;
     font-size: 0.8em;
 }
 
 .card {
-    width: 80px;
-    height: 120px;
+    width: var(--card-width);
+    height: var(--card-height);
     background-color: white;
     border-radius: 8px;
     color: black;
@@ -206,7 +220,7 @@ button:disabled {
 }
 
 .deck-count {
-    background-color: #054d1c;
+    background-color: var(--secondary-bg);
     padding: 10px;
     border-radius: 8px;
     text-align: center;
@@ -228,7 +242,7 @@ button:disabled {
 }
 
 .modal-content {
-    background-color: #076324;
+    background-color: var(--primary-bg);
     border: 2px solid #DAA520;
     border-radius: 8px;
     padding: 20px;
