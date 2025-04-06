@@ -32,3 +32,6 @@ The artifact was imported in a fresh project and then I installed Cline
 - Use Jasmine for testing $0.34
 - Score breakdown during play: $3,25
 
+2025-04-06
+
+Started implementing AI rules with Copilot
