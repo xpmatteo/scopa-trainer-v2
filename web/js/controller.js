@@ -1,6 +1,7 @@
 // Controller - handles interactions between model and UI
 
 import * as model from './model.js';
+// AI logic moved to a separate file. Import AI module here.
 import * as ai from './ai.js';
 
 // DOM elements - will be initialized in setup function
