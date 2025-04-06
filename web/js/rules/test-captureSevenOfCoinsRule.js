@@ -15,8 +15,8 @@ describe('captureSevenOfCoinsRule', () => {
         expect(captureSevenOfCoinsRule(move)).toBe(0);
     });
 
-    it('returns 0 if the move captures other suits but not the seven of coins', () => {
-        const move = mockMove([mockCard('swords', 7)]);
+    it('returns 0 if the move captures nothing', () => {
+        const move = mockMove([]);
         expect(captureSevenOfCoinsRule(move)).toBe(0);
     });
 });

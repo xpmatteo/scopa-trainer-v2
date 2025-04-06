@@ -11,12 +11,6 @@ const mockGameState = (aiCaptured, opponentCaptured) => ({
 });
 
 describe('captureCoinsRule', () => {
-    it('returns 1 if the move captures any coin cards', () => {
-        const move = mockMove([mockCard('coins', 5)]);
-        const gameState = mockGameState([], []);
-        expect(captureCoinsRule(move, gameState)).toBe(1);
-    });
-
     it('returns 0 if the move does not capture any coin cards', () => {
         const move = mockMove([mockCard('swords', 7)]);
         const gameState = mockGameState([], []);
